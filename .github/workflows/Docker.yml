@@ -42,4 +42,6 @@ jobs:
     # Push is a shorthand for --output=type=registry
         push: true
     # List of tags
-        tags: julioszeferino/go_ci:${{github.ref_name}}
+        # tags: julioszeferino/go_ci:${{github.ref_name}}
+        # versionamento melhorado, incrementa a versao em 1 a cada execucao bem sucedida
+        tags: julioszeferino/go_ci:${{github.run_number}}
