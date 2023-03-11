@@ -19,6 +19,10 @@ jobs:
     - name: Obtendo arquivo da tarefa
       run: aws ecs describe-task-definition --task-definition Tarefa_Api-GO --query taskDefinition > task-definition.json
     
+    # fazendo uma copia da tarefa
+    - name: Copia do task-definition
+      run: cp task-definition.json task-definition.json.old
+    
     # atualizando o container utilizado no ECS para a versao mais nova
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
@@ -47,4 +51,25 @@ jobs:
         # nome do cluster criado
         cluster: Api-Go-Cluster
         # vamos subir a tarefa e aguardar a confirmacao que esta tudo ok
+        wait-for-service-stability: true
+    
+    # realizando uma requisicao para testar se o container esta atualizado
+    - name: Requisicao na API para Testar o Retorno
+      # vamos executar a requisicao mesmo que o passo anterior falhe
+      continue-on-error: true
+      # salvamos uma variavel de ambiente no GITHUB_ENV
+      # esperamos 30seg
+      # realizamos uma requisicao na API
+      # se a requisicao nao for possivel, atualizamos o valor da variavel para 1
+      run: echo "REQUEST=0" >> $GITHUB_ENV ; sleep 30s && wget http://loadbalancer-api-go-43579825.us-east-2.elb.amazonaws.com:8000/bruno || echo "REQUEST=1" >> $GITHUB_ENV
+    
+    # implementando o rollback no caso de falha do teste de requisicao
+    - name: Deploy Amazon ECS task definition Rollback
+      # se houve erro, nos voltamos para a versao anterior da aplicacao
+      if: ${{ env.REQUEST != 0 }}
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: task-definition.json.old
+        service: Servico-API-GO
+        cluster: Api-Go-Cluster
         wait-for-service-stability: true
