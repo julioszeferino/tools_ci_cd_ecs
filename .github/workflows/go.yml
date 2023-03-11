@@ -69,3 +69,12 @@ jobs:
      needs: docker
      uses: ./.github/workflows/ECS.yml
      secrets: inherit
+
+  LoadTest:
+     needs: docker
+     # executar apenas se estivermos em uma branch de homologacao
+     if: ${{ github.ref_name == 'homolog' }}
+     # exemplo se quisesse executar apenas em um pull request em producao
+     # if: github.event_name == 'pull_request' && github.head_ref == 'Producao'
+     uses: ./.github/workflows/LoadTest.yml
+     secrets: inherit
