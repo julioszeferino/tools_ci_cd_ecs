@@ -27,7 +27,7 @@ jobs:
         task-definition: task-definition.json
         # nome do container no ECS
         container-name: Go
-        image: julioszeferino/go_ci:${{github.ref_name}}
+        image: julioszeferino/go_ci:${{github.run_number}}
         # definindo as variaveis de ambiente do nosso container ECS
         environment-variables: |
           HOST=${{ secrets.DBHOST }}
