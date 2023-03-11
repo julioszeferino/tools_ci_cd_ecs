@@ -15,16 +15,20 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     
+    # my-task-definition-family = Tarefa_Api-GO
     - name: Obtendo arquivo da tarefa
-      run: aws ecs describe-task-definition --task-definition Tarefa_API-GO --query taskDefinition > task-definition.json
+      run: aws ecs describe-task-definition --task-definition Tarefa_Api-GO --query taskDefinition > task-definition.json
     
+    # atualizando o container utilizado no ECS para a versao mais nova
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definition.json
+        # nome do container no ECS
         container-name: Go
         image: julioszeferino/go_ci:${{github.ref_name}}
+        # definindo as variaveis de ambiente do nosso container ECS
         environment-variables: |
           HOST=${{ secrets.DBHOST }}
           USER=${{ secrets.DBUSER }}
@@ -36,7 +40,11 @@ jobs:
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
+        # recuperando a task-definition.json do passo anterior
         task-definition: ${{ steps.task-def.outputs.task-definition }}
+        # nome do servico criado
         service: Servico-API-GO
+        # nome do cluster criado
         cluster: Api-Go-Cluster
+        # vamos subir a tarefa e aguardar a confirmacao que esta tudo ok
         wait-for-service-stability: true
